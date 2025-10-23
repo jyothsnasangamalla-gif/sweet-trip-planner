@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plane } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Plane, X } from "lucide-react";
 
 interface TripPlanFormProps {
   onSubmit: (data: TripData) => void;
@@ -17,6 +18,27 @@ export interface TripData {
   interests: string;
 }
 
+const budgetOptions = [
+  { value: "budget", label: "Budget-friendly 💰" },
+  { value: "student", label: "Student budget 🎓" },
+  { value: "mid-range", label: "Mid-range 💳" },
+  { value: "comfortable", label: "Comfortable 🌟" },
+  { value: "luxury", label: "Luxury ✨" },
+];
+
+const interestOptions = [
+  "Food & Dining 🍜",
+  "Shopping & Fashion 🛍️",
+  "Art & Museums 🎨",
+  "Nature & Outdoors 🌿",
+  "Photography 📸",
+  "Nightlife & Entertainment 🎉",
+  "History & Culture 🏛️",
+  "Adventure Sports 🏄",
+  "Relaxation & Spa 🧘",
+  "Local Experiences 🏘️",
+];
+
 export const TripPlanForm = ({ onSubmit, isLoading }: TripPlanFormProps) => {
   const [formData, setFormData] = useState<TripData>({
     destination: "",
@@ -24,6 +46,17 @@ export const TripPlanForm = ({ onSubmit, isLoading }: TripPlanFormProps) => {
     budget: "",
     interests: "",
   });
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests((prev) => {
+      const newInterests = prev.includes(interest)
+        ? prev.filter((i) => i !== interest)
+        : [...prev, interest];
+      setFormData({ ...formData, interests: newInterests.join(", ") });
+      return newInterests;
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,26 +98,50 @@ export const TripPlanForm = ({ onSubmit, isLoading }: TripPlanFormProps) => {
         <Label htmlFor="budget" className="text-foreground font-semibold">
           What's your budget? 💰
         </Label>
-        <Input
-          id="budget"
-          placeholder="e.g., student budget, mid-range, luxury..."
-          value={formData.budget}
-          onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-          className="text-lg py-6 border-2 focus:border-primary transition-smooth"
-        />
+        <Select value={formData.budget} onValueChange={(value) => setFormData({ ...formData, budget: value })}>
+          <SelectTrigger className="text-lg py-6 border-2 focus:border-primary transition-smooth bg-background">
+            <SelectValue placeholder="Choose your budget range..." />
+          </SelectTrigger>
+          <SelectContent className="bg-card border-2 z-50">
+            {budgetOptions.map((option) => (
+              <SelectItem 
+                key={option.value} 
+                value={option.value}
+                className="text-lg py-3 cursor-pointer hover:bg-muted focus:bg-muted"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="interests" className="text-foreground font-semibold">
+      <div className="space-y-3">
+        <Label className="text-foreground font-semibold">
           What makes you happy? 💕
         </Label>
-        <Textarea
-          id="interests"
-          placeholder="e.g., food, fashion, art, nature, adventure..."
-          value={formData.interests}
-          onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-          className="text-lg min-h-[100px] border-2 focus:border-primary transition-smooth resize-none"
-        />
+        <p className="text-sm text-muted-foreground">Select all that apply</p>
+        <div className="flex flex-wrap gap-2">
+          {interestOptions.map((interest) => (
+            <Badge
+              key={interest}
+              variant={selectedInterests.includes(interest) ? "default" : "outline"}
+              className={`
+                text-sm px-4 py-2 cursor-pointer transition-smooth
+                ${selectedInterests.includes(interest) 
+                  ? "gradient-warm text-white hover:shadow-glow" 
+                  : "hover:border-primary hover:bg-muted"
+                }
+              `}
+              onClick={() => toggleInterest(interest)}
+            >
+              {interest}
+              {selectedInterests.includes(interest) && (
+                <X className="ml-1 h-3 w-3" />
+              )}
+            </Badge>
+          ))}
+        </div>
       </div>
 
       <Button
